@@ -148,3 +148,14 @@ func (b *Binance) Price() chan float64 {
 
 	return ch
 }
+
+func (b *Binance) Buy(bnb float64) error {
+	v := url.Values{
+		"symbol":   {"BNBBTC"},
+		"side":     {"BUY"},
+		"type":     {"MARKET"},
+		"quantity": {strconv.FormatFloat(bnb, 'f', 3, 64)}}
+
+	_, err := b.doRequest("POST", "/api/v3/order", v, true)
+	return err
+}

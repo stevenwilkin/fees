@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 	"unicode"
 
@@ -15,6 +16,7 @@ import (
 )
 
 var (
+	b      *binance.Binance
 	margin = lipgloss.NewStyle().Margin(1, 2, 0, 2)
 	bold   = lipgloss.NewStyle().Bold(true)
 )
@@ -38,6 +40,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.Type {
 		case tea.KeyCtrlC:
 			return m, tea.Quit
+		case tea.KeyEnter:
+			vol, _ := strconv.ParseFloat(m.textInput.Value(), 64)
+			if vol <= 0.0 || m.price <= 0.0 {
+				return m, nil
+			}
+
+			bnb := ((vol / 100) * 0.075) / m.price
+			if err := b.Buy(bnb); err != nil {
+				panic(err)
+			}
+
+			m.textInput.Reset()
 		case tea.KeyRunes:
 			if !unicode.IsDigit(msg.Runes[0]) {
 				return m, nil
@@ -80,7 +94,7 @@ func main() {
 		textInput: input}
 	p := tea.NewProgram(m, tea.WithAltScreen())
 
-	b := &binance.Binance{
+	b = &binance.Binance{
 		ApiKey:    os.Getenv("BINANCE_API_KEY"),
 		ApiSecret: os.Getenv("BINANCE_API_SECRET")}
 
