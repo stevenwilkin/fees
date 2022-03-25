@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"time"
+	"unicode"
 
 	"github.com/stevenwilkin/fees/binance"
 
@@ -34,9 +35,13 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
+		switch msg.Type {
+		case tea.KeyCtrlC:
 			return m, tea.Quit
+		case tea.KeyRunes:
+			if !unicode.IsDigit(msg.Runes[0]) {
+				return m, nil
+			}
 		}
 	case priceMsg:
 		m.price = float64(msg)
